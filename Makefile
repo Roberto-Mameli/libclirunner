@@ -116,25 +116,25 @@ uninstall:
 
 # ---- Examples with static linking ----
 staticexamples: $(LIB_STATIC)
-	@mkdir -p examples/bin
+	@mkdir -p $(EXAMPLEDIR)/bin
 	@for e in $(EXAMPLES); do \
 		$(CC) $(CFLAGS) -Iheaders \
 		    $(EXAMPLEDIR)/$$e.c \
 		    lib/libclirunner.a \
 		    -pthread \
-		    -o examples/bin/$$e-static ; \
+		    -o $(EXAMPLEDIR)/bin/$$e-static ; \
 	done
 
 # ---- Examples with dynamic linking ----
 dynamicexamples: $(SHARED_LIB)
-	@mkdir -p examples/bin
+	@mkdir -p $(EXAMPLEDIR)/bin
 	@for e in $(EXAMPLES); do \
 		$(CC) $(CFLAGS) -Iheaders \
 		    $(EXAMPLEDIR)/$$e.c \
 		    -Llib -lclirunner \
 		    -pthread \
 		    -Wl,-rpath,'$$ORIGIN/../../lib' \
-		    -o examples/bin/$$e-dynamic ; \
+		    -o $(EXAMPLEDIR)/bin/$$e-dynamic ; \
 	done
 
 # ---- Clean ----
@@ -144,6 +144,9 @@ clean:
 	$(RM) $(STATIC_LIB) || true
 	$(RM) $(SHARED_LIB) || true
 	$(RM) $(SONAME) || true
+
+cleanexamples:
+	$(RM) $(EXAMPLEDIR)/bin/*
 
 # ---- Include auto-deps ----
 -include $(DEP)

@@ -3,6 +3,8 @@
 - [Key Features](#key-features)
 - [How to Build and Install *libclirunner*](#how-to-build-and-install-libclirunner)
 - [How to Use *libclirunner*](#how-to-use-libclirunner)
+- [How does *libclirunner* works?](#how-does-libclirunner-works)
+- [Examples](#examples)
 - [Comparison with Other C/C++ Libraries](#comparison-with-other-cc-libraries)
   - [1. *Boost.Process (C++)*](#1-boostprocess-c)
   - [2. *Qt – QProcess (C++)*](#2-qt--qprocess-c)
@@ -36,7 +38,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 It supports both:
 
-- **One-shot commands**: run, capture output, wait for termination
+- **One-Shot commands**: run, capture output, wait for termination
 - **Interactive foreground sessions**: bidirectional communication via stdin/stdout/stderr, with callbacks and non-blocking `poll()`
 
 It does not support (yet) long-running background processes (e.g daemons), which are planned for future releases.
@@ -100,7 +102,6 @@ This is obtained as follows:
 
 − link the executable by including either the shared or the static library libclirunner
 
-
 To compile a generic example file (let's say **_example.c_** ), simply type:
 
 - for shared library linking:
@@ -114,6 +115,89 @@ To compile a generic example file (let's say **_example.c_** ), simply type:
 
 
 In the previous command **_- L._** means that the **_libclirunner.a_** file is available in the same directory of the source code **_example.c_** ; if this is not the case just replace the dot after **_L_** with the path to the library file.
+
+
+# How does *libclirunner* works?
+`libclirunner` is designed to execute external CLI programs in a controlled and portable way. Internally, it relies on standard UNIX process primitives (`fork`, `exec`, `pipe`, `poll`, `waitpid`) and a dedicated worker thread to handle asynchronous I/O.
+
+The library supports two main usage patterns:
+
+**One-Shot API**: the One-Shot API is designed for simple command execution scenarios, where:
+
+- A command is started
+- Optional input is provided
+- The full output is collected
+- The process terminates
+
+In this mode, the library:
+
+1. Creates pipes for `stdin`, `stdout`, and `stderr`.
+2. Forks the current process.
+3. In the child:
+   - Redirects standard streams to the corresponding pipe ends.
+   - Executes the target program using `exec`.
+4. In the parent:
+   - Optionally writes input to the child’s `stdin`.
+   - Reads `stdout` and `stderr` until EOF.
+   - Waits for process termination using `waitpid`.
+   - Returns the exit status and collected output.
+
+This API is synchronous from the caller’s perspective and is ideal for batch-style command execution.
+
+**Interactive API**: the interactive API is designed for long-running or interactive CLI programs (e.g. shells, menu-driven tools, etc.).
+
+In this mode:
+
+1. The library creates pipes for:
+   - Child `stdin`
+   - Child `stdout`
+   - Child `stderr`
+   - An internal control pipe (used to signal stop requests)
+2. The interactive CLI program is started in a child process via `fork` + `exec`.
+3. A dedicated worker thread is launched in the parent process.
+
+The worker thread in the parent:
+
+- Uses `poll()` to monitor:
+  - `stdout`
+  - `stderr`
+  - The control pipe
+- Reads available data in non-blocking mode.
+- Dispatches received data to user-defined callbacks:
+  - `on_stdout`
+  - `on_stderr`
+- Detects EOF on each stream and closes them safely.
+- Waits for child termination with `waitpid`.
+- Invokes the `on_exit` callback with the final exit code.
+
+The main thread in the parent can:
+
+- Write to the child’s `stdin` through the corresponding pipe
+- Close `stdin` explicitly (to signal EOF)
+- Request termination
+- Join the worker thread
+- Destroy the session
+
+This design ensures:
+
+- Non-blocking I/O handling
+- Safe shutdown semantics
+- Proper propagation of exit codes
+- No busy-waiting (thanks to `poll()` with timeout)
+
+**Design Principles**
+
+ Clear separation between process management and I/O handling
+ Thread-based asynchronous reading
+ Explicit lifecycle control (start, write, close, stop, join, destroy)
+ Correct handling of EOF and pipe semantics
+ Safe behavior even with slow or interactive child processes
+
+In summary, the One-Shot API provides a simple synchronous abstraction, while the interactive API exposes a fully asynchronous session model suitable for complex CLI integrations.
+
+
+# Examples
+Please refer to the [./examples](./examples/) subdirectory for some sample applications
 
 
 # Comparison with Other C/C++ Libraries
@@ -237,7 +321,7 @@ Below is a synthetic, high-level comparison with the most widely used libraries.
 | *Tiny, embeddable*                            |             |  Heavy frameworks                                                          |
 | *Non-blocking streaming via poll()*           |             | Implemented differently or requires event loop (Qt, GLib, libuv)            |
 | *Thread-based streaming callbacks*            |             | Usually event-loop based or more complex                                    |
-| *Explicit separation: one-shot vs interactive* |             | Most libraries provide only unified API                                     |
+| *Explicit separation: One-Shot vs interactive* |             | Most libraries provide only unified API                                     |
 
 
 

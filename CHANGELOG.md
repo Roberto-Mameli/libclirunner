@@ -27,5 +27,5 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 ### Fixed
 ### Security
 
-[Unreleased]: https://github.com/Roberto-Mameli/libclirunner/v.3.0.0...HEAD
+[Unreleased]: https://github.com/Roberto-Mameli/libclirunner/v.1.0.0...HEAD
 [1.0.0]: https://github.com/Roberto-Mameli/libclirunner/releases/tag/v.1.0.0

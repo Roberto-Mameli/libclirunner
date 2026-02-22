@@ -10,7 +10,7 @@
   - [2. *Qt – QProcess (C++)*](#2-qt--qprocess-c)
   - [3. *GLib/GIO – GSubprocess (C)*](#3-glibgio--gsubprocess-c)
   - [4. *POCO C++ Process*](#4-poco-c-process)
-  - [5. *libuv – uv\_spawn() (C)*](#5-libuv--uv_spawn-c)
+  - [5. *libuv – uv\_spawn(C)*](#5-libuv--uv_spawnc)
   - [6. *POSIX `posix_spawn()`*](#6-posix-posix_spawn)
   - [Summary of Advantages of *libclirunner*](#summary-of-advantages-of-libclirunner)
 - [When Should You Use *libclirunner*?](#when-should-you-use-libclirunner)
@@ -52,7 +52,7 @@ The library is designed for applications that need **fine-grained control** over
 
 - **Shell-Free Execution (Security by Design)**: commands are executed via `execvp()` with explicit `argv[]`, avoiding the risks of shell interpolation or command injection.
 
-- **Unified Abstraction for One-Shot or Long-Running Commands**: the library provides disticnt function calls for:
+- **Unified Abstraction for One-Shot or Long-Running Commands**: the library provides distinct function calls for:
   - **One-Shot API**: run → capture stdout/stderr → join → exit code.
   - **Session API**: spawn in a dedicated thread → stream stdout/stderr via callbacks → write to stdin → stop gracefully.
 
@@ -186,12 +186,11 @@ This design ensures:
 - No busy-waiting (thanks to `poll()` with timeout)
 
 **Design Principles**
-
- Clear separation between process management and I/O handling
- Thread-based asynchronous reading
- Explicit lifecycle control (start, write, close, stop, join, destroy)
- Correct handling of EOF and pipe semantics
- Safe behavior even with slow or interactive child processes
+- Clear separation between process management and I/O handling
+- Thread-based asynchronous reading
+- Explicit lifecycle control (start, write, close, stop, join, destroy)
+- Correct handling of EOF and pipe semantics
+- Safe behavior even with slow or interactive child processes
 
 In summary, the One-Shot API provides a simple synchronous abstraction, while the interactive API exposes a fully asynchronous session model suitable for complex CLI integrations.
 
@@ -203,7 +202,7 @@ Please refer to the [./examples](./examples/) subdirectory for some sample appli
 # Comparison with Other C/C++ Libraries
 Below is a synthetic, high-level comparison with the most widely used libraries.
 
-## 1. *[Boost.Process](https://www.boost.org/doc/libs/latest/libs/process/doc/html/index.html) (C++)*
+## 1. *[Boost.Process (C++)](https://www.boost.org/doc/libs/latest/libs/process/doc/html/index.html)*
 
 **Description:** A full-featured, cross-platform C++ library supporting synchronous and asynchronous process management, integrated with Boost.Asio.
 
@@ -222,7 +221,7 @@ Below is a synthetic, high-level comparison with the most widely used libraries.
 - *libclirunner* is **pure C**, zero dependencies, much simpler.
 
 
-## 2. *[Qt – QProcess](https://doc.qt.io/qt-6/qprocess.html) (C++)*
+## 2. *[Qt – QProcess (C++)](https://doc.qt.io/qt-6/qprocess.html)*
 
 **Description:** A QtCore class offering easy process spawning integrated with Qt’s event loop.
 
@@ -235,13 +234,13 @@ Below is a synthetic, high-level comparison with the most widely used libraries.
 - Requires *QtCore*, which is a large framework
 - Not suitable for C-only projects
 - Tied to Qt’s event loop
-- 
+
 **Compared to *libclirunner***:
 - QProcess is great if you’re writing Qt applications; otherwise it's too large.
 - *libclirunner* has **no event loop**, no Qt runtime, and remains minimal and portable.
 
 
-## 3. *[GLib/GIO – GSubprocess](https://gnome.pages.gitlab.gnome.org/libsoup/gio/GSubprocess.html) (C)*
+## 3. *[GLib/GIO – GSubprocess (C)](https://gnome.pages.gitlab.gnome.org/libsoup/gio/GSubprocess.html)*
 
 **Description:** Advanced GLib/GIO API for spawning, streaming, communicating with child processes.
 
@@ -259,7 +258,7 @@ Below is a synthetic, high-level comparison with the most widely used libraries.
 - *libclirunner* keeps a **pure POSIX**, dependency-free approach.
 
 
-## 4. *[POCO C++ Process](https://docs.pocoproject.org/current/Poco.Process.html)*
+## 4. *[POCO C++ Process (C++)](https://docs.pocoproject.org/current/Poco.Process.html)*
 
 **Description:** High-level API for spawning processes using POCO Foundation.
 
@@ -277,7 +276,7 @@ Below is a synthetic, high-level comparison with the most widely used libraries.
 - *libclirunner* is **tiny, embeddable, standalone C**.
 
 
-## 5. *[libuv – uv\_spawn()](https://docs.libuv.org/en/v1.x/guide/processes.html) (C)*
+## 5. *[libuv – uv\_spawn(C)](https://docs.libuv.org/en/v1.x/guide/processes.html)*
 
 **Description:** Cross-platform event-loop-centric library.
 

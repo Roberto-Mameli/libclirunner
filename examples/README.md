@@ -1,6 +1,24 @@
 # Examples
-
 The `examples/` directory contains three small programs that demonstrate the main usage patterns of `libclirunner`.
+
+To compile them, use the following commands from the _libclirunner_ root directory:
+
+    make staticexamples 
+    make dynamicexamples 
+
+The first compiles all the examples and links them statically with the _libclirunner.a_ library. The second uses dynamic libraries.
+
+The examples can be found in _./examples/bin_ directory.
+
+Command:
+
+    make cleanexamples
+
+can be used to cleanup the content of the _./examples/bin_ directory.
+
+Here follows a descripion of all available examples.
+
+
 
 ## **_example1.c_** - One-shot command execution
 This example is the classical *"Hello, world"*, launched in a child process. It shows how to use the **one-shot API** to execute a command synchronously.

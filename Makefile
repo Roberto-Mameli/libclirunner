@@ -77,7 +77,7 @@ SOFLAGS    := -shared -Wl,-soname,$(SONAME)
 
 # ---- Targets ----
 
-.PHONY: all clean install uninstall dirs
+.PHONY: all clean install uninstall dirs staticexamples dynamicexamples cleanexamples
 
 all: dirs $(STATIC_LIB) $(SHARED_LIB)
 

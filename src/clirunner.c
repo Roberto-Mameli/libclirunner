@@ -91,12 +91,14 @@ struct cli_session {
 /*******************************
  * Static Functions (Internal) *
  *******************************/
+/* Dynamic buffer - Initializes an empty buffer */
 static void db_init(dynbuf_t *b)
 {
     b->data = NULL;
     b->len = b->cap = 0;
 }
 
+/* Dynamic buffer - Releases buffer memory and resets state */
 static void db_free(dynbuf_t *b)
 {
     free(b->data);
@@ -104,6 +106,9 @@ static void db_free(dynbuf_t *b)
     b->len = b->cap = 0;
 }
 
+/* Dynamic buffer - Ensures buffer capacity is at least 'need' bytes, */
+/* growing geometrically (x2) via realloc. Returns 0 on success,      */
+/* -1 on error                                                        */
 static int db_reserve(dynbuf_t *b, size_t need)
 {
     /* Local Variables */
@@ -128,6 +133,9 @@ static int db_reserve(dynbuf_t *b, size_t need)
     return 0;
 }
 
+/* Dynamic buffer - Appends 'n' bytes from 'src', growing the buffer as */
+/* needed. Result is always NUL-terminated. Returns 0 on success,       */
+/* -1 on error                                                          */
 static int db_append(dynbuf_t *b, const void *src, size_t n)
 {
     if (!n)
@@ -142,6 +150,7 @@ static int db_append(dynbuf_t *b, const void *src, size_t n)
     return 0;
 }
 
+/* Time helper - Returns current monotonic time in milliseconds */
 static int64_t now_ms(void)
 {
     /* Local Variables */
@@ -152,6 +161,8 @@ static int64_t now_ms(void)
     return (int64_t)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 }
 
+/* File descriptor helper - Sets fd in non-blocking mode */
+/* Returns 0 on success, -1 on error                     */
 static int set_nonblock(int fd)
 {
     int fl = fcntl(fd, F_GETFL, 0);
@@ -159,6 +170,8 @@ static int set_nonblock(int fd)
     return (fl < 0) ? -1 : fcntl(fd, F_SETFL, fl | O_NONBLOCK);
 }
 
+/* I/O helper - Writes 'len' bytes to fd, retrying on EINTR/EAGAIN until */
+/* timeout_ms elapses (<0 = infinite). Returns 0 on success, -1 on error */
 static int write_all(int fd, const void *buf, size_t len, int timeout_ms)
 {
     const uint8_t *p = buf;
@@ -193,6 +206,9 @@ static int write_all(int fd, const void *buf, size_t len, int timeout_ms)
     return 0;
 }
 
+/* Process helper - Forks and execs 'cmd' with 'argv', connecting its  */
+/* stdin/stdout/stderr to pipes returned in 'cp' (set non-blocking in  */
+/* the parent). Returns 0 on success, -1 on error                      */
 static int spawn_with_pipes(const char *cmd, char *const argv[], child_pipes_t *cp)
 {
     int   in_p[2],
@@ -238,6 +254,10 @@ static int spawn_with_pipes(const char *cmd, char *const argv[], child_pipes_t *
     return 0;
 }
 
+/* Interactive session - Thread body that polls child stdout/stderr,  */
+/* dispatches received data to the on_stdout/on_stderr callbacks, and */
+/* invokes on_exit once the child terminates or the session is        */
+/* stopped via ctl_pipe                                               */
 static void *session_thread(void *arg)
 {
     /* Local Variables */
@@ -472,7 +492,6 @@ int cli_session_start(cli_session_t *s,
     if (spawn_with_pipes(cmd, argv, &s->cp) < 0)
         return -1;
 
-    //pipe(s->ctl_pipe);
     if (pipe(s->ctl_pipe) < 0)
     {
         int e = errno;

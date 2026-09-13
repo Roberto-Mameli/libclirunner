@@ -9,7 +9,7 @@
   - [1. *Boost.Process (C++)*](#1-boostprocess-c)
   - [2. *Qt – QProcess (C++)*](#2-qt--qprocess-c)
   - [3. *GLib/GIO – GSubprocess (C)*](#3-glibgio--gsubprocess-c)
-  - [4. *POCO C++ Process*](#4-poco-c-process)
+  - [4. *POCO C++ Process (C++)*](#4-poco-c-process-c)
   - [5. *libuv – uv\_spawn(C)*](#5-libuv--uv_spawnc)
   - [6. *POSIX `posix_spawn()`*](#6-posix-posix_spawn)
   - [Summary of Advantages of *libclirunner*](#summary-of-advantages-of-libclirunner)
@@ -106,12 +106,13 @@ To compile a generic example file (let's say **_example.c_** ), simply type:
 
 - for shared library linking:
 
-      gcc -g -c -O2 -Wall -v –I/usr/local/include example.c
-      gcc -g -o example example.c - lclirunner
+      gcc -g -c -O2 -Wall -v -I/usr/local/include example.c
+      gcc -g -o example example.c -lclirunner
+
 
 - for static linking:
 
-      gcc -static example.c - I/usr/local/include -L. -lclirunner - o example
+      gcc -static example.c -I/usr/local/include -L. -lclirunner -o example
 
 
 In the previous command **_- L._** means that the **_libclirunner.a_** file is available in the same directory of the source code **_example.c_** ; if this is not the case just replace the dot after **_L_** with the path to the library file.
